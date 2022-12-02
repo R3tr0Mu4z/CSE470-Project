@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 02, 2022 at 10:48 PM
+-- Generation Time: Dec 02, 2022 at 11:19 PM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 7.4.30
 
@@ -47,7 +47,7 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`id`, `name`, `email`, `phone`, `email_verified_at`, `password`, `street`, `city`, `houseNo`, `remember_token`, `created_at`, `updated_at`) VALUES
-(156, 'Muaz', 'syedali1998bd@gmail.com', '01301767913', NULL, '$2y$10$q7/S2cI3tAeT2UEQxhEr1.0WmjqZcjXMtjam03jXC/SFbstrvcoJK', NULL, NULL, NULL, NULL, '2022-12-02 14:06:50', '2022-12-02 14:06:50');
+(156, 'Muaz', 'syedali1998bd@gmail.com', '01301767913', NULL, '$2y$10$q7/S2cI3tAeT2UEQxhEr1.0WmjqZcjXMtjam03jXC/SFbstrvcoJK', 'test', 'test', '12345', NULL, '2022-12-02 14:06:50', '2022-12-02 14:06:50');
 
 -- --------------------------------------------------------
 
@@ -129,8 +129,7 @@ CREATE TABLE `manager` (
 
 INSERT INTO `manager` (`id`, `name`, `email`, `phone`, `password`, `admin_approval`, `role`, `updated_at`, `created_at`) VALUES
 (35, 'test', 'tadmin@test.test', 'test', '$2y$10$u9sgamEtreiKexzXebV15.NrRTzGQwPI9kbYantB/iblOwhFax42S', 1, 'administrative_manager', '2022-12-01 21:54:26', '2022-12-01 21:54:26'),
-(39, 'admin', 'tadmin2@test.test', '010101010', '$2y$10$zDeuJHaekpvT2y70lXT7Fu9hXf1EG3C4G7jot0WkpPc2ofTfdB9By', 1, 'administrative_manager', '2022-12-02 19:03:03', '2022-12-02 18:54:40'),
-(40, 'Restaurant Manager', 'restaurantmanaget@test.com', '01301767913', '$2y$10$R0K3OIathDskNgQfGFTmfehxznkxJAX8d2rcSnlVrem4P0ugxnOSG', 0, 'restaurant_manager', '2022-12-02 19:46:13', '2022-12-02 19:46:13');
+(40, 'Restaurant Manager', 'restaurantmanager@test.com', '01301767913', '$2y$10$R0K3OIathDskNgQfGFTmfehxznkxJAX8d2rcSnlVrem4P0ugxnOSG', 0, 'restaurant_manager', '2022-12-02 19:46:13', '2022-12-02 19:46:13');
 
 -- --------------------------------------------------------
 
@@ -177,8 +176,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `foods`, `quantity`, `cost`, `customer`, `restaurant`, `status`, `created_at`, `updated_at`) VALUES
-(44, '20,19', '3,1', '1900', 156, 18, 'pending', '2022-12-02 20:06:56', '2022-12-02 20:06:56'),
-(45, '12,13,14', '4,1,2', '2600', 156, 14, 'pending', '2022-12-02 20:07:05', '2022-12-02 20:07:05'),
+(44, '20,19', '3,1', '1900', 156, 18, 'Delivered', '2022-12-02 20:06:56', '2022-12-02 22:16:20'),
+(45, '12,13,14', '4,1,2', '2600', 156, 14, 'Cancelled', '2022-12-02 20:07:05', '2022-12-02 22:17:39'),
 (46, '18,17', '3,3', '1800', 156, 16, 'pending', '2022-12-02 20:07:14', '2022-12-02 20:07:14'),
 (47, '20', '2', '1000', 156, 18, 'pending', '2022-12-02 20:25:17', '2022-12-02 20:25:17'),
 (48, '16,17', '2,2', '1300', 156, 16, 'pending', '2022-12-02 20:27:31', '2022-12-02 20:27:31'),
