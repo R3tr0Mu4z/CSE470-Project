@@ -75,7 +75,7 @@ class OrderModel extends Model
     }
 
 
-    public function deleteManager($id) {
+    public function deleteOrder($id) {
         $query = Self::query();
         $delete = $query->select('id')
         ->where('id', '=', $id)
