@@ -93,7 +93,7 @@
                   <a href="/admin/orders/view/@php echo $order->getID(); @endphp" style="color: #006aff">View Order</a>
                   <a href="/admin/orders/delete/@php echo $order->getID(); @endphp" style="color: #ff0000">Delete
                     Order</a>
-                </div @endforeach </div>
+                </div> @endforeach </div>
               </div>
             </div>
           </div>
