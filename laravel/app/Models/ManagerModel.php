@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
 class ManagerModel extends Model
 {
@@ -28,17 +29,17 @@ class ManagerModel extends Model
 
         $result = $query->get()->toArray();
 
-        
-        if (empty($result[0])) {
-            exit;
-        }
-        $result = $result[0];
+        if (!empty($result)) {
+            $result = $result[0];
 
-        $verify = password_verify($password, $result['password']);
+            $verify = password_verify($password, $result['password']);
 
-        if ($verify) {
-            return $result;
+            if ($verify) {
+                return $result;
+            }
         }
+
+        return 0;
     }
 
     public function getManagerByID($id)
@@ -54,6 +55,19 @@ class ManagerModel extends Model
     }
 
  
+    public function getManagerByEmail($email)
+    {
+
+        $query = Self::query();
+
+        $query = $query->select('id');
+        $query = $query->where('email', '=', $email);
+        $result = $query->first();
+
+        return $result;
+    }
+
+
     
     public function getAllManagers()
     {
@@ -78,5 +92,16 @@ class ManagerModel extends Model
         $update = Self::where('id', $manager_id)
         ->update($data);
         return $update;
+    }
+
+    public function insertManager($post) {
+        $data = new Self();
+        $data->name = $post['name'];
+        $data->email = $post['email'];
+        $data->phone = $post['phone'];
+        $data->role = $post['role'];
+        $data->password = Hash::make($post['password']);
+        $insert = $data->save();
+        return $data->id;
     }
 }

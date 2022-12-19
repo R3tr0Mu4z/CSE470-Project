@@ -34,9 +34,10 @@ class OrdersList extends Controller
                 return Redirect::to('/');
             }
             $approval = $req->session()->get('admin_approval');
-
             if ($approval == 0) {
                 echo "Your administrative rights require approval.";
+                echo "<br/>";
+                echo "Please click here to <a href='/manager/logout'>log in</a> again to see if you are approved";
                 exit;
             }
             $this->admin_id = $id;
@@ -94,6 +95,7 @@ class OrdersList extends Controller
 
     public function viewOrder($id) {
         $order = new Order($id);
+        $order->exitIfOrderDoesntExit();
         return view('parts.admin.view_order', ['order' => $order]);
     }
 

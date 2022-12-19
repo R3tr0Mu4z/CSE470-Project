@@ -43,7 +43,11 @@ class OrderModel extends Model
         $data->cost = $total;
         $data->restaurant = $restaurant_id;
         $insert = $data->save();
-        return $insert;
+        if ($insert) {
+            return $data->id;
+        } else {
+            return false;
+        }
     }
 
 

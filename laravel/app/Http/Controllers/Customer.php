@@ -14,7 +14,7 @@ use App\Models\CustomerModel;
 class Customer extends Controller
 {
     /**
-     * Create a new AuthController instance.
+     *
      *
      * @return void
      */
@@ -114,7 +114,7 @@ class Customer extends Controller
             return $this->respondWithToken($token);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        return response()->json(['type' => 'danger', 'message' => 'Invalid email or password'], 200);
     }
 
     /**
@@ -182,11 +182,35 @@ class Customer extends Controller
     }
 
     public function register(Request $request) {
+
+        
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['type' => 'danger', 'message' => 'Please enter all the values'], 200);
+        }
+
+        $validated = $validator->validated();
+
+        if (!filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['type' => 'danger', 'message' => 'Invalid Email'], 200);
+        }
+
+        if (Self::emailExists($validated['email'])) {
+            return response()->json(['type' => 'danger', 'message' => 'Email already exists'], 200);
+        }
+
         $data = [];
-        $data['name'] = $request['name'];
-        $data['email'] = $request['email'];
-        $data['phone'] = $request['phone'];
-        $data['password'] =  $request['password'];
+        $data['name'] = $validated['name'];
+        $data['email'] = $validated['email'];
+        $data['phone'] = $validated['phone'];
+        $data['password'] =  $validated['password'];
         $data['password'] = Hash::make($data['password']);
         $insert = CustomerModel::insertCustomer($data);
         if ($insert) {
@@ -194,69 +218,130 @@ class Customer extends Controller
             $token = $this->guard()->attempt($credentials);
             if ($token = $this->guard()->attempt($credentials)) {
                 return $this->respondWithToken($token);
-            } else {
-                return response()->json(['error' => 'tokenization error.'], 401);
             }
-        } else {
-            
-            return response()->json(['error' => 'Insertion error.'], 401);
         }
+        return response()->json(['type' => 'danger', 'message' => 'There was an error'], 200);
 
     }
 
     public function updateAPI(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
+            'houseNo' => 'required',
+            'street' => 'required',
+            'city' => 'required',
+            'password' => 'required',
+            
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json(['type' => 'danger', 'message' => 'Please include all the details'], 200);
+        }
+
+        $validated = $validator->validated();
+
         $data = [];
-        $data['name'] = $request['name'];
-        $data['email'] = $request['email'];
-        $data['phone'] = $request['phone'];
-        $data['houseNo'] = $request['houseNo'];
-        $data['street'] = $request['street'];
-        $data['city'] = $request['city'];
+        $data['name'] = $validated['name'];
+        $data['email'] = $validated['email'];
+        $data['phone'] = $validated['phone'];
+        $data['houseNo'] = $validated['houseNo'];
+        $data['street'] = $validated['street'];
+        $data['city'] = $validated['city'];
         $customer = $this->get_customer();
 
+        $email = new Self($customer);
+        $email = $email->getEmail();
+
+        if ($validated['email'] != $email) {
+            if (Self::emailExists($validated['email'])) {
+                return response()->json(['type' => 'danger', 'message' => 'Email already used by someone else'], 200);
+            }
+        }
+
         $reset = false;
-        if (!empty($request['password'])) {
+        if (!empty($validated['password'])) {
             $reset = true;
-            $data['password'] =  Hash::make($request['password']);
+            $data['password'] =  Hash::make($validated['password']);
             $this->guard()->logout();
         }
         
 
         $update = CustomerModel::updateCustomer($customer, $data);
 
-        if ($update) {
-            return response()->json(['type' => 'success', 'message' => 'Profile Updated! Please log in again.', 'reset' => $reset], 200);
-        }
+        return $update ? response()->json(['type' => 'success', 'message' => 'Profile Updated! Please log in again.', 'reset' => $reset], 200) : exit;
 
     }
 
     public function deleteCustomer($id, Request $req) {
+        $this->exitIfCustomerDoesntExit($id);
         $delete = CustomerModel::deleteCustomer($id);
-        if ($delete) {
-            return Redirect::to('/admin/customers/');
-        }
+        return $delete ? Redirect::to('/admin/customers/') : exit;
     }
 
 
     public function editCustomer($id, Request $req) {
+        $this->exitIfCustomerDoesntExit($id);
         $customer = new Self($id);
         return view('edit_customer', ['customer' => $customer]);
     }
 
     public function updateCustomer(Request $request) {
-        $data = [];
-        $data['name'] = $request['name'];
-        $data['email'] = $request['email'];
-        $data['phone'] = $request['phone'];
-        $data['houseNo'] = $request['houseNo'];
-        $data['street'] = $request['street'];
-        $data['city'] = $request['city'];
-        $update = CustomerModel::updateCustomer($request['id'], $data);
 
-        if ($update) {
-            return Redirect::to("/admin/customers/edit/{$request['id']}");
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required',
+            'houseNo' => 'required',
+            'street' => 'required',
+            'city' => 'required',
+        ]);
+
+
+        
+ 
+        if ($validator->fails()) {
+            echo "Error : Please make sure all the inputs are given.";
+            exit;
         }
+
+
+        $validated = $validator->validated();
+
+
+        $this->exitIfCustomerDoesntExit($validated['id']);
+
+        $data = [];
+        $data['name'] = $validated['name'];
+        $data['email'] = $validated['email'];
+        $data['phone'] = $validated['phone'];
+        $data['houseNo'] = $validated['houseNo'];
+        $data['street'] = $validated['street'];
+        $data['city'] = $validated['city'];
+        $update = CustomerModel::updateCustomer($validated['id'], $data);
+
+        return $update ? Redirect::to("/admin/customers/edit/{$request['id']}") : exit;
+
     }
+
+    public function exitIfCustomerDoesntExit($id = null) {
+        if (empty($id)) {
+            $id = $this->id;
+        }
+        $customer = CustomerModel::getCustomer($id);
+        return empty($customer) ? print_r('Error : Customer does not exist').exit : null;
+    }
+
+    public function emailExists($email) {
+        $email = CustomerModel::getCustomerByEmail($email);
+        return $email ? true : false;
+    }
+
+
 
 
 }

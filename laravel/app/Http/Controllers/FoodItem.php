@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Models\FoodModel;
+use App\Models\RestaurantModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 
 class FoodItem extends Controller
 {
@@ -14,6 +16,7 @@ class FoodItem extends Controller
     private $imageURL = null;
     private $restaurant_id = null;
     private $is_admin = false;
+    private $restaurant_owner_id = null;
 
 
     public function __construct($food_id = null)
@@ -46,6 +49,7 @@ class FoodItem extends Controller
             if (empty($id)) {
                 return Redirect::to('/');
             }
+            $this->restaurant_owner_id = $id;
             return $next($req);
         },  ['except' => ['getFoodForAPI']]);
     }
@@ -79,38 +83,50 @@ class FoodItem extends Controller
     public function deleteFood($id) {
         $restaurant = FoodModel::getRestaurantID($id);
         $delete = FoodModel::deleteFood($id);
-        if ($delete) {
-            if ($this->is_admin) {
-                return Redirect::to("/admin/restaurants/view/{$restaurant}");
-            }
-            return Redirect::to("/owned-restaurants/view-restaurant/{$restaurant}");
-        }
+        return $delete ? $this->is_admin ? Redirect::to("/admin/restaurants/view/{$restaurant}") : Redirect::to("/owned-restaurants/view-restaurant/{$restaurant}") : exit;
     }
 
 
     public function insertFood(Request $request)
     {
         if ($request->hasFile('image')) {
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'category' => 'required',
+                'price' => 'required',
+                'image' => 'required',
+                'restaurant' => 'required',
+            ]);
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+    
+    
+            $validated = $validator->validated();
+
             $image = $request->file('image');
             $name = time().'.'.$image->getClientOriginalExtension();
             $destinationPath = public_path('/images');
             $image->move($destinationPath, $name);
 
-            $data = new FoodModel;
-            $data->name = $request['name'];
-            $data->category = $request['category'];
-            $data->price = $request['price'];
-            $data->image = $name;
-            $data->restaurant = $request['restaurant'];
-            $insert = $data->save();
-            if ($insert) {
-                return Redirect::to("/owned-restaurants/view-restaurant/{$data->restaurant}");
-            }
+            $data = [];
+            $data['name'] = $validated['name'];
+            $data['category'] = $validated['category'];
+            $data['price'] = $validated['price'];
+            $data['image'] = $name;
+            $data['restaurant'] = $validated['restaurant'];
+            $data = FoodModel::insertFood($data);
+            return $data ? Redirect::to("/owned-restaurants/view-restaurant/{$validated['restaurant']}") : exit;
         }
     }
 
 
     public function editFood($id) {
+        Self::exitIfFoodDoesntExit($id);
+        Self::exitIfNotPrivilleged($id, $this->restaurant_owner_id);
         $food = FoodModel::getFoodByID($id);;
         return view('edit_food', ['food' => $food]);
     }
@@ -119,20 +135,44 @@ class FoodItem extends Controller
     public function updateFood(Request $request)
     {
         if ($request->hasFile('image')) {
+
+
+
+            $validator = Validator::make($request->all(), [
+                'food_id' => 'required',
+                'name' => 'required',
+                'category' => 'required',
+                'price' => 'required',
+                'image' => 'required',
+            ]);
+    
+    
+            
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+    
+    
+            $validated = $validator->validated();
+
             $image = $request->file('image');
             $name = time().'.'.$image->getClientOriginalExtension();
             $destinationPath = public_path('/images');
             $image->move($destinationPath, $name);
 
+            Self::exitIfFoodDoesntExit($validated['food_id']);
+            Self::exitIfNotPrivilleged($validated['food_id'], $this->restaurant_owner_id);
+
+            
             $data = [];
-            $data['name'] = $request['name'];
-            $data['category'] = $request['category'];
-            $data['price'] = $request['price'];
+            $data['name'] = $validated['name'];
+            $data['category'] = $validated['category'];
+            $data['price'] = $validated['price'];
             $data['image'] = $name;
-            $update = FoodModel::updateFood($request['food_id'], $data);
-            if ($update) {
-                return Redirect::to("/edit-food/{$request['food_id']}");
-            }
+            $update = FoodModel::updateFood($validated['food_id'], $data);
+            return $update ? Redirect::to("/edit-food/{$validated['food_id']}") : exit;
         }
     }
 
@@ -146,5 +186,27 @@ class FoodItem extends Controller
         $foods = FoodModel::getFoodByID($id);
         return $foods;
     }
+
+    public function exitIfFoodDoesntExit($id) {
+        $food = FoodModel::getFoodByID($id);
+        return empty($food) ? print_r('Error : Food does not exist').exit : null;
+    }
+
+    public function exitIfNotPrivilleged($food_id, $manager = null) {
+        if ($this->is_admin) {
+            return true;
+        }
+
+        $restaurant_id = FoodModel::getRestaurantID($food_id);
+
+
+        $restaurant = RestaurantModel::getRestaurant($restaurant_id);
+
+        if ($restaurant->restaurant_owner != $manager) {
+            print("Error : You do not have access to this food");
+            exit;
+        }
+    }
+
 }
 

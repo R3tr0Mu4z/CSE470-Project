@@ -48,7 +48,11 @@ class RestaurantModel extends Model
         $data->image = $restaurant['image'];
         $data->restaurant_owner = $restaurant['restaurant_owner'];
         $insert = $data->save();
-        return $insert;
+        if ($insert) {
+            return $data->id;
+        } else {
+            return false;
+        }
     }
 
     public function deleteRestaurant($id) {

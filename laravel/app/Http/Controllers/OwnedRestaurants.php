@@ -45,25 +45,5 @@ class OwnedRestaurants extends Controller
 
 
 
-
-    public function post(Request $request)
-    {
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $name = time().'.'.$image->getClientOriginalExtension();
-            $destinationPath = public_path('/images');
-            $image->move($destinationPath, $name);
-
-            $data = [];
-            $data['name'] = $request['restaurant_name'];
-            $data['category'] = $request['category'];
-            $data['image'] = $name;
-            $data['restaurant_owner'] = $this->restaurant_owner_id;
-            $insert = RestaurantModel::insertRestaurant($data);
-            if ($insert) {
-                return Redirect::to('/owned-restaurants/');
-            }
-        }
-    }
 }
 

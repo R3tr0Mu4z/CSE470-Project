@@ -8,6 +8,7 @@ use App\Http\Controllers\Manager;
 use App\Http\Controllers\CustomersList;
 use App\Http\Controllers\ManagersList;
 use App\Http\Controllers\RestaurantsList;
+use Illuminate\Support\Facades\Validator;
 
 class AdministrativeManager extends Controller
 {
@@ -22,10 +23,13 @@ class AdministrativeManager extends Controller
             if (empty($id)) {
                 return Redirect::to('/');
             }
+
             $approval = $req->session()->get('admin_approval');
 
             if ($approval == 0) {
                 echo "Your administrative rights require approval.";
+                echo "<br/>";
+                echo "Please click here to <a href='/manager/logout'>log in</a> again to see if you are approved";
                 exit;
             }
             $this->admin_id = $id;
@@ -46,16 +50,54 @@ class AdministrativeManager extends Controller
 
     public function post(Request $request) {
         if ($request['type'] == 'sign_up') {
-            $result = Manager::signUp($request, 'admin_manager');
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'email' => 'required',
+                'phone' => 'required',
+                'password' => 'required',
+            ]);
+
+            $validated = $validator->validated();
+
+            
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+
+
+            $result = Manager::signUp($request, $validated, 'admin_manager');
             if ($result) {
                 return Redirect::to('/admin/customers/');
+            } else {
+                echo "Error : Email already exists";
+                exit;
             }
         }
 
         if ($request['type'] == 'sign_in') {
-            $result = Manager::signIn($request, "admin");
+
+            $validator = Validator::make($request->all(), [
+                'email' => 'required',
+                'password' => 'required',
+            ]);
+
+            $validated = $validator->validated();
+
+            
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+
+            $result = Manager::signIn($request, $validated);
             if ($result) {
                 return Redirect::to('/admin/customers/');
+            } else {
+                echo 'Error : Incorrect email or password';
             }
         }
     }

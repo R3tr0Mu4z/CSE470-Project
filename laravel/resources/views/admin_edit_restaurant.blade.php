@@ -66,7 +66,14 @@
             <span class="nav-link-text ms-1">Orders</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-white  " href="/manager/logout">
+            <span class="nav-link-text ms-1">Log Out</span>
+          </a>
+        </li>
       </ul>
+
+
     </div>
 
   </aside>

@@ -5,6 +5,7 @@ use App\Models\RestaurantModel;
 use App\Models\FoodModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 
 class Restaurant extends Controller
 {
@@ -71,6 +72,23 @@ class Restaurant extends Controller
         return $this->restaurant_id;
     }
 
+
+    public function getName() {
+        return $this->name;
+    }
+
+    public function getCategory() {
+        return $this->category;
+    }
+
+    public function getImage() {
+        return $this->imageURL;
+    }
+
+    public function getOwner() {
+        return $this->owner;
+    }
+
     public function addFoodItem($id) {
         return view('add_food', ['restaurant' => $id]);
     }
@@ -132,6 +150,8 @@ class Restaurant extends Controller
     
 
     public function deleteRestaurant($id) {
+        Self::exitIfRestaurantDoesntExit($id);
+        Self::exitIfNotPrivilleged($id, $this->restaurant_owner_id);
         $delete = RestaurantModel::deleteRestaurant($id, $this->restaurant_owner_id);
         if ($delete) {
             if ($this->is_admin) {
@@ -144,6 +164,8 @@ class Restaurant extends Controller
 
 
     public function editRestaurant($id) {
+        Self::exitIfRestaurantDoesntExit($id);
+        Self::exitIfNotPrivilleged($id, $this->restaurant_owner_id);
         $restaurant = RestaurantModel::getRestaurant($id);;
         $view = "edit_restaurant";
         if ($this->is_admin) {
@@ -156,25 +178,48 @@ class Restaurant extends Controller
     public function updateRestaurant(Request $request)
     {
         if ($request->hasFile('image')) {
+
+            $validator = Validator::make($request->all(), [
+                'restaurant_name' => 'required',
+                'category' => 'required',
+                'restaurant_id' => 'required',
+
+            ]);
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+    
+    
+            $validated = $validator->validated();
+
+            Self::exitIfRestaurantDoesntExit($validated['restaurant_id']);
+            Self::exitIfNotPrivilleged($validated['restaurant_id'], $this->restaurant_owner_id);
             $image = $request->file('image');
             $name = time().'.'.$image->getClientOriginalExtension();
             $destinationPath = public_path('/images');
             $image->move($destinationPath, $name);
 
             $data = [];
-            $data['name'] = $request['restaurant_name'];
-            $data['category'] = $request['category'];
+            $data['name'] = $validated['restaurant_name'];
+            $data['category'] = $validated['category'];
             $data['image'] = $name;
-            $data['restaurant_owner'] = $this->restaurant_owner_id;
-            $insert = RestaurantModel::updateRestaurant($data, $request['restaurant_id']);
-            if ($insert) {
-                return Redirect::to("/owned-restaurants/view-restaurant/{$request['restaurant_id']}");
+            $insert = RestaurantModel::updateRestaurant($data, $validated['restaurant_id']);
+
+            if ($this->is_admin) {
+                return $insert ? Redirect::to("/admin/restaurants/view/{$validated['restaurant_id']}") : exit;
+
+            } else {
+                return $insert ? Redirect::to("/owned-restaurants/view-restaurant/{$validated['restaurant_id']}") : exit;
+
             }
+
         }
     }
 
 
-    public function post(Request $request)
+    public function createRestaurant(Request $request)
     {
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -182,15 +227,49 @@ class Restaurant extends Controller
             $destinationPath = public_path('/images');
             $image->move($destinationPath, $name);
 
+            $validator = Validator::make($request->all(), [
+                'restaurant_name' => 'required',
+                'category' => 'required',
+
+            ]);
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+    
+    
+            $validated = $validator->validated();
+
+
             $data = [];
-            $data['name'] = $request['restaurant_name'];
-            $data['category'] = $request['category'];
+            $data['name'] = $validated['restaurant_name'];
+            $data['category'] = $validated['category'];
             $data['image'] = $name;
             $data['restaurant_owner'] = $this->restaurant_owner_id;
             $insert = RestaurantModel::insertRestaurant($data);
-            if ($insert) {
-                return Redirect::to('/owned-restaurants/');
-            }
+            return $insert ? Redirect::to('/owned-restaurants/') : exit;
+        }
+    }
+
+    public function exitIfRestaurantDoesntExit($id = null) {
+        if (empty($id)) {
+            $id = $this->restaurant_id;
+        }
+        $restaurant = RestaurantModel::getRestaurant($id);
+        return empty($restaurant) ? print_r('Error : Restaurant does not exist').exit : null;
+    }
+
+    public function exitIfNotPrivilleged($restaurant_id, $manager = null) {
+        if ($this->is_admin) {
+            return true;
+        }
+        $restaurant = RestaurantModel::getRestaurant($restaurant_id);
+
+
+        if ($restaurant->restaurant_owner != $manager) {
+            print("Error : You do not have access to this restaurant");
+            exit;
         }
     }
 

@@ -112,7 +112,26 @@ class Order extends Controller
         return $this->customer;
     }
 
+
+    public function getCost() {
+        return $this->total;
+    }
+
+
+    public function getFoodItemIDs() {
+        return $this->food_item_ids;
+    }
+
+    public function getQuantityOfFoods() {
+        return $this->quantity_of_foods;
+    }
+
     public function markDelivered(Request $request) {
+        if (empty($request['order_id'])) {
+            echo 'Error,';
+            exit;
+        }
+        
         $this->order_id = $request['order_id'];
         $update = OrderModel::changeStatus($this->order_id, "Delivered");
         if ($update) {
@@ -125,6 +144,12 @@ class Order extends Controller
 
 
     public function markCancelled(Request $request) {
+
+        if (empty($request['order_id'])) {
+            echo 'Error,';
+            exit;
+        }
+
         $this->order_id = $request['order_id'];
         $update = OrderModel::changeStatus($this->order_id, "Cancelled");
         if ($update) {
@@ -169,6 +194,14 @@ class Order extends Controller
         if ($delete) {
             return Redirect::to('/admin/orders/');
         }
+    }
+
+    public function exitIfOrderDoesntExit($id = null) {
+        if (empty($id)) {
+            $id = $this->order_id;
+        }
+        $order = OrderModel::getOrder($id);
+        return empty($order) ? print_r('Error : Order does not exist').exit : null;
     }
 
 }

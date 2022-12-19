@@ -1,4 +1,4 @@
-const base_url = 'http://192.168.1.4:8000'
+const base_url = 'http://192.168.1.2:8000'
 const place_url = base_url + '/api/place-order?token='
 const food_url = base_url + '/api/get-food/'
 const img_url = base_url + '/images/'

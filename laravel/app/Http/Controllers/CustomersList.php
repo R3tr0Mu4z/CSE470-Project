@@ -22,6 +22,8 @@ class CustomersList extends Controller
 
             if ($approval == 0) {
                 echo "Your administrative rights require approval.";
+                echo "<br/>";
+                echo "Please click here to <a href='/manager/logout'>log in</a> again to see if you are approved";
                 exit;
             }
             $this->admin_id = $id;
@@ -45,6 +47,7 @@ class CustomersList extends Controller
     public function viewCustomer($id) {
         if (!$this->is_admin) {exit;}
         $customer = new Customer($id);
+        $customer->exitIfCustomerDoesntExit();
         $customer = $customer->getCustomerDetails();
         return view('parts.admin.view_customer', ['customer' => $customer]);
     }

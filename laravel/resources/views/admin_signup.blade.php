@@ -82,7 +82,7 @@
                 <div class="card-footer text-center pt-0 px-lg-2 px-1">
                   <p class="mb-2 text-sm mx-auto">
                     Already have an account?
-                    <a href="/admin-manager/sign-in" class="text-primary text-gradient font-weight-bold">Sign in</a>
+                    <a href="/admin-manager/sign-in" class="text-primary text-gradient font-weight-bold">Sign In</a>
                   </p>
                 </div>
               </div>

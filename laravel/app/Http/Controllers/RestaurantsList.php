@@ -21,6 +21,8 @@ class RestaurantsList extends Controller
 
             if ($approval == 0) {
                 echo "Your administrative rights require approval.";
+                echo "<br/>";
+                echo "Please click here to <a href='/manager/logout'>log in</a> again to see if you are approved";
                 exit;
             }
             $this->admin_id = $id;
@@ -58,6 +60,7 @@ class RestaurantsList extends Controller
 
     public function viewRestaurant($id) {
         $restaurant = new Restaurant($id);
+        $restaurant->exitIfRestaurantDoesntExit();
         return view('parts.admin.view_restaurant', ['restaurant' => $restaurant]);
     }   
 

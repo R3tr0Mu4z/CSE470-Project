@@ -84,7 +84,11 @@ class CustomerModel extends Authenticatable implements JWTSubject
         $data->password =  $post['password'];
         $insert = $data->save();
 
-        return $insert;
+        if ($insert) {
+            return $data->id;
+        } else {
+            return false;
+        }
     }
 
     
@@ -116,4 +120,17 @@ class CustomerModel extends Authenticatable implements JWTSubject
         ->delete();
         return $delete;
     }
+
+    public function getCustomerByEmail($email)
+    {
+
+        $query = Self::query();
+
+        $query = $query->select('id');
+        $query = $query->where('email', '=', $email);
+        $result = $query->first();
+
+        return $result;
+    }
+
 }

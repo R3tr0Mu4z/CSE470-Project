@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import CustomerContext from '../context/CustomerContext'
 import { signup_url, login_url, update_url } from '../API.js'
 
+import { showMessage, hideMessage } from "react-native-flash-message";
 
 
 class Customer extends Component {
@@ -50,6 +51,12 @@ class Customer extends Component {
         if (data?.access_token) {
           this.props.setToken(data.access_token);
           this.props.forceUpdateParent();
+        } else {
+          console.log(data)
+          showMessage({
+            message: data.message,
+            type: data.type,
+          });
         }
       })
   }
@@ -71,6 +78,11 @@ class Customer extends Component {
         if (data?.access_token) {
           this.props.setToken(data.access_token);
           this.props.forceUpdateParent();
+        } else {
+          showMessage({
+            message: data.message,
+            type: data.type,
+          });
         }
       })
   }
@@ -107,6 +119,10 @@ class Customer extends Component {
           }
 
         }
+        showMessage({
+          message: data.message,
+          type: data.type,
+        });
       })
   }
 
@@ -144,6 +160,7 @@ class Customer extends Component {
 
             <TextInput
               style={styles.input}
+              keyboardType='numeric'
               placeholder="Phone"
               onChangeText={(text) => this.setState({ phone: text })}
             />

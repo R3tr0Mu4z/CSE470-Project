@@ -55,4 +55,15 @@ class FoodModel extends Model
         ->update($data);
         return $update;
     }
+
+    public function insertFood($validated) {
+        $data = new Self();
+        $data->name = $validated['name'];
+        $data->category = $validated['category'];
+        $data->price = $validated['price'];
+        $data->image = $validated['image'];
+        $data->restaurant = $validated['restaurant'];
+        $data->save();
+        return $data->id;
+    }
 }

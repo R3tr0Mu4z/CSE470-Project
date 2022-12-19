@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Controllers\Manager;
 use App\Http\Controllers\OwnedRestaurants;
+use Illuminate\Support\Facades\Validator;
 
 class RestaurantManager extends Controller
 {
@@ -35,17 +36,60 @@ class RestaurantManager extends Controller
     }
 
     public function post(Request $request) {
+
+        
         if ($request['type'] == 'sign_up') {
-            $result = Manager::signUp($request, 'restaurant_manager');
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'email' => 'required',
+                'phone' => 'required',
+                'password' => 'required',
+            ]);
+
+            $validated = $validator->validated();
+
+            
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+
+
+
+            $result = Manager::signUp($request, $validated, 'restaurant_manager');
             if ($result) {
                 return Redirect::to('/owned-restaurants/');
+            } else {
+                echo "Error : Email already exists";
+                exit;
             }
         }
 
         if ($request['type'] == 'sign_in') {
-            $result = Manager::signIn($request);
+
+            $validator = Validator::make($request->all(), [
+                'email' => 'required',
+                'password' => 'required',
+            ]);
+
+            $validated = $validator->validated();
+
+            
+     
+            if ($validator->fails()) {
+                echo "Error : Please make sure all the inputs are given.";
+                exit;
+            }
+
+            $result = Manager::signIn($request, $validated);
+
             if ($result) {
                 return Redirect::to('/owned-restaurants/');
+            } else {
+                echo "Error : Incorrect email or password";
+                exit;
             }
         }
     }

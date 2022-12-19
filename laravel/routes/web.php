@@ -27,7 +27,7 @@ Route::get('/delete-restaurant/{id}', [App\Http\Controllers\Restaurant::class, '
 Route::get('/owned-restaurants/add-food/{id}', [App\Http\Controllers\Restaurant::class, 'addFoodItem']);
 Route::get('/delete-food/{id}', [App\Http\Controllers\FoodItem::class, 'deleteFood']);
 Route::get('/owned-restaurants/view-restaurant/{id}', [App\Http\Controllers\OwnedRestaurants::class, 'viewRestaurant']);
-Route::post('/add-restaurant/post', [App\Http\Controllers\OwnedRestaurants::class, 'post']);
+Route::post('/add-restaurant/post', [App\Http\Controllers\Restaurant::class, 'createRestaurant']);
 Route::post('/add-food/post', [App\Http\Controllers\FoodItem::class, 'insertFood']);
 Route::get('/edit-food/{id}', [App\Http\Controllers\FoodItem::class, 'editFood']);
 Route::get('/edit-restaurant/{id}', [App\Http\Controllers\Restaurant::class, 'editRestaurant']);
@@ -57,3 +57,4 @@ Route::get('/admin/orders/view/{id}', [App\Http\Controllers\OrdersList::class, '
 Route::get('/admin/orders/delete/{id}', [App\Http\Controllers\Order::class, 'deleteOrder']);
 Route::post('/update-customer/', [App\Http\Controllers\Customer::class, 'updateCustomer']);
 Route::post('/update-manager/', [App\Http\Controllers\Manager::class, 'updateManager']);
+Route::get('/manager/logout', [App\Http\Controllers\Manager::class, 'logout']);
